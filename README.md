@@ -1,1239 +1,1098 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Auto Giro - Jogo de Arrancada 420m</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonte Orbitron para visual racing/gamer -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            font-family: 'Rajdhani', sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #06b6d4;
-            border-radius: 3px;
-        }
-        /* Glassmorphic Panel */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        /* Neon Glows */
-        .glow-cyan {
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
-        }
-        .glow-red {
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
-        }
-        .glow-green {
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
-        }
-        /* Canvas container positioning */
-        #gameCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTO GIRO 3D - Simulador de Arrancada (Grupo 5)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .btn-action {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-action:active {
+      transform: translateY(2px) scale(0.97);
+    }
+
+    #webgl-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .ui-overlay {
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .interactive-ui {
+      pointer-events: auto;
+    }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-hidden">
 
-    <!-- TOP BAR / HEADER -->
-    <header class="w-full bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center z-20 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-r from-red-600 to-amber-500 p-2 rounded-lg shadow-md">
-                <i class="fa-solid font-bold fa-gauge-high text-xl text-black"></i>
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="glass-panel sticky top-0 z-50 px-4 py-3 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-400 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid fa-cube text-2xl text-slate-950"></i>
+        </div>
+        <div>
+          <h1 class="font-orbitron text-2xl font-black italic tracking-wider bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+            AUTO GIRO 3D
+          </h1>
+          <p class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Simulador de Moto 3D — Grupo 5</p>
+        </div>
+      </div>
+
+      <!-- Account Badge -->
+      <div class="flex items-center space-x-3 bg-slate-950 p-2 px-3.5 rounded-xl border border-slate-800">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-400 flex items-center justify-center font-orbitron font-extrabold text-slate-950 text-xs shadow-md" id="navAvatar">
+          G5
+        </div>
+        <div class="text-left">
+          <div id="navDriverName" class="text-xs font-orbitron font-bold text-slate-200">Piloto_G5</div>
+          <div class="text-[10px] text-cyan-400 font-bold" id="navStats">R$ <span id="navCash">2.500</span> | NVL <span id="navLevel">1</span></div>
+        </div>
+        <button onclick="openAuthModal()" class="ml-2 p-1.5 text-slate-400 hover:text-cyan-400 transition-colors" title="Perfil e Configurações">
+          <i class="fa-solid fa-user-gear text-base"></i>
+        </button>
+      </div>
+
+      <!-- Menu Tabs -->
+      <nav class="flex items-center space-x-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800">
+        <button id="tabGarageBtn" onclick="switchTab('garage')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 font-orbitron shadow-md">
+          <i class="fa-solid fa-warehouse mr-1.5"></i> GARAGEM 3D
+        </button>
+        <button id="tabRaceBtn" onclick="switchTab('race')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron">
+          <i class="fa-solid fa-flag-checkered mr-1.5"></i> PISTA 420M
+        </button>
+        <button id="tabLobbyBtn" onclick="switchTab('lobby')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron">
+          <i class="fa-solid fa-globe mr-1.5"></i> RANKING
+        </button>
+        <button id="tabTeamBtn" onclick="switchTab('team')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron">
+          <i class="fa-solid fa-users mr-1.5"></i> GRUPO 5
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT CONTAINER FOR CANVAS & UI OVERLAYS -->
+  <main class="relative flex-grow w-full max-w-7xl mx-auto h-[calc(100vh-80px)] flex flex-col justify-between p-3 sm:p-4">
+
+    <!-- THREE.JS CANVAS CONTAINER -->
+    <div id="webgl-container" class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl"></div>
+
+    <!-- UI OVERLAY CONTENT -->
+    <div class="ui-overlay h-full flex flex-col justify-between">
+
+      <!-- TAB 1: 3D GARAGE VIEW OVERLAY -->
+      <section id="viewGarage" class="h-full flex flex-col justify-between p-2">
+        
+        <!-- Bike Selector & Specs Top Card -->
+        <div class="interactive-ui flex flex-wrap justify-between items-start gap-4">
+          <div class="glass-panel p-4 rounded-2xl max-w-md w-full shadow-2xl space-y-2">
+            <div class="flex justify-between items-center">
+              <span id="selectedBikeCategory" class="text-[10px] font-orbitron font-extrabold text-cyan-400 tracking-wider uppercase">STREET 160CC</span>
+              <span id="selectedBikePower" class="px-2.5 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-[11px] font-orbitron font-bold">52 HP</span>
             </div>
-            <div>
-                <h1 class="font-orbitron font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-amber-400 to-red-500">
-                    AUTO GIRO <span class="text-xs text-slate-400 font-normal">| Grupo 5</span>
-                </h1>
-                <p class="text-xs text-slate-400 font-semibold hidden sm:block">Desafio de Arrancada 420m</p>
+            <h2 id="selectedBikeTitle" class="text-2xl font-orbitron font-black text-white">HONDA TITAN 160 FUÇADA</h2>
+            <p id="selectedBikeDesc" class="text-xs text-slate-400">Motor preparado, cinto de tração, aro esportivo e corte de giro no limite.</p>
+            
+            <!-- Specs Breakdown -->
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-[11px] font-orbitron">
+              <div>
+                <span class="text-slate-500 block">VEL. MÁX</span>
+                <strong id="statTopSpeed" class="text-yellow-400">185 km/h</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">TORQUE</span>
+                <strong id="statTorque" class="text-emerald-400">4.8 kgfm</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">CILINDRADA</span>
+                <strong id="statEngine" class="text-cyan-400">160 cc</strong>
+              </div>
             </div>
+          </div>
+
+          <!-- Bike Selection Cards Strip -->
+          <div class="glass-panel p-3 rounded-2xl flex space-x-2 overflow-x-auto max-w-xl" id="bikes3dStrip">
+            <!-- Dynamically Rendered -->
+          </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <!-- Dinheiro / Moedas do Piloto -->
-            <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-amber-500/30">
-                <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
-                <span id="playerMoney" class="font-orbitron font-bold text-amber-300 text-sm sm:text-base">R$ 1.500</span>
-            </div>
+        <!-- 3D Customization & Controls Bottom Panel -->
+        <div class="interactive-ui grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          
+          <!-- Painting Customization -->
+          <div class="glass-panel p-4 rounded-2xl space-y-3">
+            <h3 class="text-xs font-orbitron font-bold text-cyan-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-palette mr-2"></i>Pintura & Estilo 3D
+            </h3>
 
-            <!-- Navegação de Telas -->
-            <nav class="flex gap-2">
-                <button id="btnNavRace" onclick="switchTab('race')" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm transition flex items-center gap-1.5 glow-cyan">
-                    <i class="fa-solid fa-flag-checkered"></i> <span class="hidden sm:inline">Pista</span>
-                </button>
-                <button id="btnNavGarage" onclick="switchTab('garage')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition flex items-center gap-1.5 border border-slate-700">
-                    <i class="fa-solid fa-warehouse"></i> <span class="hidden sm:inline">Garagem</span>
-                </button>
-                <button id="btnNavRank" onclick="switchTab('ranking')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition flex items-center gap-1.5 border border-slate-700">
-                    <i class="fa-solid fa-trophy"></i> <span class="hidden sm:inline">Ranking</span>
-                </button>
-            </nav>
+            <div class="space-y-2 text-xs font-orbitron">
+              <div>
+                <span class="text-slate-400 block mb-1">Carenagem Principal:</span>
+                <div class="flex space-x-2">
+                  <button onclick="setBikeColor3D(0x06b6d4)" class="w-6 h-6 rounded-full bg-cyan-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setBikeColor3D(0xef4444)" class="w-6 h-6 rounded-full bg-red-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setBikeColor3D(0x10b981)" class="w-6 h-6 rounded-full bg-emerald-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setBikeColor3D(0xeab308)" class="w-6 h-6 rounded-full bg-yellow-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setBikeColor3D(0xa855f7)" class="w-6 h-6 rounded-full bg-purple-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setBikeColor3D(0x0f172a)" class="w-6 h-6 rounded-full bg-slate-900 border border-white/50 hover:scale-110 transition-transform"></button>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-slate-400 block mb-1">Rodas & Aros:</span>
+                <div class="flex space-x-2">
+                  <button onclick="setWheelColor3D(0xe2e8f0)" class="w-6 h-6 rounded-full bg-slate-200 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setWheelColor3D(0xeab308)" class="w-6 h-6 rounded-full bg-yellow-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setWheelColor3D(0x020617)" class="w-6 h-6 rounded-full bg-slate-950 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setWheelColor3D(0xef4444)" class="w-6 h-6 rounded-full bg-red-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-slate-400 block mb-1">Traje do Piloto:</span>
+                <div class="flex space-x-2">
+                  <button onclick="setRiderColor3D(0xf97316)" class="w-6 h-6 rounded-full bg-orange-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setRiderColor3D(0x3b82f6)" class="w-6 h-6 rounded-full bg-blue-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setRiderColor3D(0x10b981)" class="w-6 h-6 rounded-full bg-emerald-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                  <button onclick="setRiderColor3D(0xec4899)" class="w-6 h-6 rounded-full bg-pink-500 border border-white/50 hover:scale-110 transition-transform"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Camera Angle Toggle -->
+          <div class="glass-panel p-4 rounded-2xl text-center space-y-2">
+            <span class="text-xs font-orbitron font-bold text-slate-300 block uppercase">Ângulo da Câmera 3D</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setCameraView('chase')" class="py-2 bg-slate-800 hover:bg-slate-700 font-orbitron text-xs rounded-xl font-bold border border-slate-700">
+                <i class="fa-solid fa-video mr-1"></i> VISÃO TRASEIRA
+              </button>
+              <button onclick="setCameraView('side')" class="py-2 bg-slate-800 hover:bg-slate-700 font-orbitron text-xs rounded-xl font-bold border border-slate-700">
+                <i class="fa-solid fa-film mr-1"></i> VISÃO LATERAL
+              </button>
+            </div>
+          </div>
+
+          <!-- Enter Track Button -->
+          <button onclick="switchTab('race')" class="w-full py-4 bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 text-slate-950 font-orbitron font-black text-lg rounded-2xl shadow-xl shadow-cyan-500/20 btn-action flex items-center justify-center space-x-2">
+            <span>IR PARA A PISTA 420M</span>
+            <i class="fa-solid fa-play"></i>
+          </button>
+
         </div>
-    </header>
+      </section>
 
-    <!-- CONTAINER PRINCIPAL DE TELAS -->
-    <main class="flex-1 relative flex flex-col justify-center items-center w-full max-w-7xl mx-auto p-2 sm:p-4">
+      <!-- TAB 2: 3D RACE TRACK HUD & CONTROLS -->
+      <section id="viewRace" class="hidden h-full flex-col justify-between p-2">
+        
+        <!-- Live HUD Telemetry Header -->
+        <div class="interactive-ui grid grid-cols-2 sm:grid-cols-4 gap-2 font-orbitron">
+          <div class="glass-panel p-2.5 rounded-xl text-center border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-bold">DISTÂNCIA</span>
+            <span id="hudDistance" class="text-xl font-black text-cyan-400">0.0 <span class="text-xs text-slate-400">/ 420m</span></span>
+          </div>
 
-        <!-- ==================== TELA 1: PISTA DE CORRIDA (CANVAS) ==================== -->
-        <section id="tabRace" class="w-full flex flex-col items-center gap-3">
-            
-            <!-- CANVAS CONTAINER -->
-            <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[480px] bg-slate-900 rounded-xl overflow-hidden border-2 border-slate-700 shadow-2xl">
-                
-                <canvas id="gameCanvas"></canvas>
+          <div class="glass-panel p-2.5 rounded-xl text-center border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-bold">TEMPO</span>
+            <span id="hudTimer" class="text-xl font-black text-emerald-400">0.000 <span class="text-xs text-slate-400">s</span></span>
+          </div>
 
-                <!-- OVERLAY: SEMÁFORO DE LARGADA (TREE LIGHTS) -->
-                <div id="treeLightsOverlay" class="absolute top-4 left-1/2 -translate-x-1/2 glass-panel p-2.5 rounded-xl border border-slate-600/50 flex gap-3 shadow-2xl z-10 transition-all duration-300">
-                    <div id="lightRed" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-950 border-2 border-red-900 transition-all duration-150"></div>
-                    <div id="lightYellow1" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-950 border-2 border-amber-900 transition-all duration-150"></div>
-                    <div id="lightYellow2" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-950 border-2 border-amber-900 transition-all duration-150"></div>
-                    <div id="lightGreen" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-950 border-2 border-emerald-900 transition-all duration-150"></div>
-                </div>
+          <div class="glass-panel p-2.5 rounded-xl text-center border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-bold">VELOCIDADE</span>
+            <span id="hudSpeed" class="text-xl font-black text-yellow-400">0 <span class="text-xs text-slate-400">km/h</span></span>
+          </div>
 
-                <!-- OVERLAY: MENSAGEM / STATUS DE LARGADA -->
-                <div id="statusMsgOverlay" class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10">
-                    <h2 id="statusTitle" class="font-orbitron font-black text-2xl sm:text-4xl text-yellow-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] tracking-wider">PREPARE-SE!</h2>
-                    <p id="statusSubtitle" class="text-sm sm:text-base font-bold text-slate-200 drop-shadow">Aguarde o sinal verde para acelerar</p>
-                </div>
+          <div class="glass-panel p-2.5 rounded-xl text-center border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-bold">MARCHA</span>
+            <span id="hudGear" class="text-xl font-black text-purple-400">N</span>
+          </div>
+        </div>
 
-                <!-- OVERLAY: PAINEL DE TELEMETRIA NA PISTA (SUPERIOR ESQUERDA) -->
-                <div class="absolute top-3 left-3 glass-panel px-3 py-2 rounded-lg text-left border border-slate-700/60 pointer-events-none">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Distância Percorrida</div>
-                    <div class="font-orbitron font-extrabold text-lg sm:text-xl text-cyan-400">
-                        <span id="hudDistance">0.0</span> / 420m
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-1.5 mt-1 overflow-hidden">
-                        <div id="distanceBar" class="bg-cyan-400 h-full w-0 transition-all duration-75"></div>
-                    </div>
-                </div>
+        <!-- Shift Alert & Tree Notification Overlay -->
+        <div class="flex flex-col items-center space-y-2 my-auto">
+          <div id="shiftFeedback" class="glass-panel px-6 py-2 rounded-xl font-orbitron font-black text-base opacity-0 transition-all pointer-events-none shadow-2xl border">
+            PREPARE-SE
+          </div>
 
-                <!-- OVERLAY: CRONÔMETRO DE PRECISÃO (SUPERIOR DIREITA) -->
-                <div class="absolute top-3 right-3 glass-panel px-3 py-2 rounded-lg text-right border border-slate-700/60 pointer-events-none">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tempo de Prova</div>
-                    <div id="hudTimer" class="font-orbitron font-black text-xl sm:text-2xl text-amber-400 tracking-wider">
-                        00.000s
-                    </div>
-                </div>
+          <div id="redlineAlert" class="hidden bg-red-600/90 text-white font-orbitron font-black text-xs px-4 py-1.5 rounded-full animate-bounce shadow-lg border border-red-400">
+            💥 CORTE DE GIRO! TROQUE A MARCHA!
+          </div>
+        </div>
 
-                <!-- OVERLAY: PAINEL PÓS-CORRIDA (RESULTADOS) -->
-                <div id="modalResult" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-4">
-                    <div class="glass-panel p-6 rounded-2xl border border-cyan-500/40 max-w-md w-full text-center space-y-4 shadow-2xl animate-fade-in">
-                        <h2 id="resTitle" class="font-orbitron font-black text-3xl text-emerald-400 tracking-wider">VITÓRIA!</h2>
-                        <p id="resSubtitle" class="text-sm text-slate-300">Você completou a prova dos 420 metros!</p>
-                        
-                        <div class="grid grid-cols-2 gap-3 py-2 text-left">
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                                <span class="text-xs text-slate-400 block font-semibold">Tempo Final</span>
-                                <span id="resTime" class="font-orbitron font-bold text-xl text-amber-400">00.000s</span>
-                            </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                                <span class="text-xs text-slate-400 block font-semibold">Velocidade Máxima</span>
-                                <span id="resSpeed" class="font-orbitron font-bold text-xl text-cyan-400">0 km/h</span>
-                            </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                                <span class="text-xs text-slate-400 block font-semibold">Tempo de Reação</span>
-                                <span id="resReaction" class="font-orbitron font-bold text-base text-slate-200">0.00s</span>
-                            </div>
-                            <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                                <span class="text-xs text-slate-400 block font-semibold">Prêmio da Prova</span>
-                                <span id="resPrize" class="font-orbitron font-bold text-base text-emerald-400">+ R$ 0</span>
-                            </div>
-                        </div>
+        <!-- Bottom Controls & Tachometer Bar -->
+        <div class="interactive-ui grid grid-cols-1 lg:grid-cols-3 gap-3 items-end">
+          
+          <!-- Downshift Button -->
+          <button id="btnShiftDown" onclick="handleShiftGear(-1)" class="glass-panel py-4 text-yellow-400 hover:bg-slate-800 font-orbitron font-black text-sm rounded-2xl btn-action flex items-center justify-center space-x-2 shadow-lg">
+            <i class="fa-solid fa-arrow-left text-xl"></i>
+            <span>REDUZIR (←)</span>
+          </button>
 
-                        <div class="flex gap-3 pt-2">
-                            <button onclick="resetRace()" class="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold font-orbitron rounded-xl transition shadow-lg text-sm sm:text-base">
-                                <i class="fa-solid fa-rotate-right mr-1"></i> NOVA CORRIDA
-                            </button>
-                            <button onclick="switchTab('garage')" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-bold font-orbitron rounded-xl transition border border-slate-700 text-sm sm:text-base">
-                                <i class="fa-solid fa-wrench mr-1"></i> GARAGEM
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+          <!-- Digital RPM Tachometer Gauge -->
+          <div class="glass-panel p-3 rounded-2xl flex flex-col items-center">
+            <div class="w-full flex justify-between items-center text-[11px] font-orbitron mb-1.5">
+              <span class="text-slate-400">RPM: <strong id="rpmDigit" class="text-white font-bold">1200</strong></span>
+              <span class="text-emerald-400 font-bold">PONTO DOCE: 8500-10500</span>
             </div>
 
-            <!-- DASHBOARD DE CONTROLE / TACÔMETRO E VELOCÍMETRO -->
-            <div class="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 sm:p-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                
-                <!-- OPONENTE INFO -->
-                <div class="md:col-span-3 flex flex-col justify-center bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Adversário Selecionado</span>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 font-bold text-lg">
-                            <i class="fa-solid fa-user-ninja"></i>
-                        </div>
-                        <div>
-                            <select id="selectOpponent" onchange="changeOpponent()" class="bg-slate-900 text-sm font-bold text-cyan-300 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-cyan-500">
-                                <!-- Preenchido via JS -->
-                            </select>
-                            <p id="oppMotoName" class="text-xs text-slate-400">Titan 160 Fuçada</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="relative w-full h-5 bg-slate-950 rounded-full border border-slate-800 overflow-hidden p-0.5">
+              <div id="rpmBar" class="h-full rounded-full bg-gradient-to-r from-cyan-500 via-emerald-400 via-yellow-400 to-red-600 transition-all duration-75" style="width: 10%"></div>
+              <div class="absolute top-0 bottom-0 left-[75%] w-[15%] bg-emerald-400/25 border-x border-emerald-400 pointer-events-none"></div>
+            </div>
+          </div>
 
-                <!-- TACÔMETRO & SHIFT LIGHT (CENTRO) -->
-                <div class="md:col-span-6 flex flex-col items-center justify-center bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                    
-                    <div class="w-full flex justify-between items-center mb-1 px-2">
-                        <!-- VELOCÍMETRO -->
-                        <div class="flex items-baseline gap-1">
-                            <span id="hudSpeed" class="font-orbitron font-black text-3xl sm:text-4xl text-cyan-400">0</span>
-                            <span class="text-xs font-bold text-slate-400">KM/H</span>
-                        </div>
+          <!-- Upshift & Throttle Controls -->
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnShiftUp" onclick="handleShiftGear(1)" class="py-4 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 text-slate-950 font-orbitron font-black text-sm rounded-2xl shadow-lg btn-action flex items-center justify-center space-x-1">
+              <span>SUBIR (→)</span>
+              <i class="fa-solid fa-arrow-right text-xl"></i>
+            </button>
 
-                        <!-- SHIFT LIGHT INDICATOR -->
-                        <div id="shiftLight" class="px-4 py-1 rounded-md font-orbitron font-extrabold text-xs tracking-wider uppercase bg-slate-800 text-slate-500 border border-slate-700">
-                            RPM NORMAL
-                        </div>
+            <button id="btnThrottle" class="py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-orbitron font-black text-sm rounded-2xl shadow-lg btn-action flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-arrow-up text-xl"></i>
+              <span>ACELERAR</span>
+            </button>
+          </div>
 
-                        <!-- MARCHA ATUAL -->
-                        <div class="flex items-center gap-1 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-                            <span class="text-xs text-slate-400 font-semibold">MARCHA:</span>
-                            <span id="hudGear" class="font-orbitron font-black text-2xl text-amber-400">N</span>
-                        </div>
-                    </div>
+        </div>
 
-                    <!-- BARRA DE RPM / CONTA GIROS -->
-                    <div class="w-full bg-slate-900 rounded-lg p-1.5 border border-slate-800 relative">
-                        <!-- Marcador da Zona Perfeita de Troca -->
-                        <div class="absolute top-0 bottom-0 right-[15%] w-[12%] bg-emerald-500/20 border-x border-emerald-500/50 pointer-events-none z-0"></div>
-                        <div class="absolute top-0 bottom-0 right-[3%] w-[12%] bg-red-600/30 border-x border-red-500/50 pointer-events-none z-0"></div>
+        <!-- Finish Race Telemetry Overlay -->
+        <div id="finishOverlay" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-4">
+            <div id="finishBadge" class="text-3xl font-orbitron font-black text-emerald-400">
+              VITÓRIA!
+            </div>
+            
+            <p class="text-xs text-slate-300 font-orbitron">Telemetria de Arrancada 3D — 420 Metros</p>
 
-                        <div class="h-5 sm:h-6 w-full bg-slate-950 rounded overflow-hidden flex relative z-10">
-                            <div id="rpmBar" class="h-full w-0 bg-gradient-to-r from-cyan-500 via-amber-400 to-emerald-400 transition-all duration-75"></div>
-                        </div>
-
-                        <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1 font-semibold">
-                            <span>0</span>
-                            <span>3k</span>
-                            <span>6k</span>
-                            <span>9k (PERFEITO)</span>
-                            <span>11k (CORTE)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTROLES NA TELA / BOTÕES (DIREITA OU TOUCH MOBILE) -->
-                <div class="md:col-span-3 flex gap-2 h-full">
-                    <!-- BOTÃO TROCAR MARCHA -->
-                    <button id="btnShift" onmousedown="triggerShiftGear()" onclick="triggerShiftGear()" class="flex-1 py-3 px-2 bg-gradient-to-b from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 active:scale-95 text-black font-orbitron font-black text-sm rounded-xl shadow-lg border-b-4 border-amber-900 flex flex-col items-center justify-center gap-1 transition">
-                        <i class="fa-solid fa-angles-up text-lg"></i>
-                        <span>MARCHA</span>
-                        <span class="text-[10px] opacity-75 font-sans">(Shift / Espaço)</span>
-                    </button>
-
-                    <!-- BOTÃO ACELERADOR -->
-                    <button id="btnGas" onmousedown="startGas()" onmouseup="stopGas()" ontouchstart="startGas(event)" ontouchend="stopGas(event)" class="flex-1 py-3 px-2 bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 active:scale-95 text-black font-orbitron font-black text-sm rounded-xl shadow-lg border-b-4 border-emerald-900 flex flex-col items-center justify-center gap-1 transition">
-                        <i class="fa-solid fa-gauge-high text-lg"></i>
-                        <span>ACELERAR</span>
-                        <span class="text-[10px] opacity-75 font-sans">(Seta P/ Cima)</span>
-                    </button>
-                </div>
-
+            <div class="grid grid-cols-2 gap-2.5 bg-slate-950 p-4 rounded-xl border border-slate-800 text-left font-orbitron text-xs">
+              <div>
+                <span class="text-slate-500 block">TEMPO TOTAL</span>
+                <strong id="resPlayerTime" class="text-emerald-400 text-base">0.000s</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">TEMPO REAÇÃO</span>
+                <strong id="resReactionTime" class="text-cyan-400 text-base">0.180s</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">VELOCIDADE FINAL</span>
+                <strong id="resTopSpeed" class="text-yellow-400 text-base">0 km/h</strong>
+              </div>
+              <div>
+                <span class="text-slate-500 block">TROCAS PRECISAS</span>
+                <strong id="resShiftAccuracy" class="text-purple-400 text-base">100%</strong>
+              </div>
             </div>
 
-        </section>
-
-        <!-- ==================== TELA 2: GARAGEM & LOJA DE PEÇAS ==================== -->
-        <section id="tabGarage" class="w-full hidden flex-col gap-4">
-            
-            <div class="flex flex-col md:flex-row gap-6">
-                
-                <!-- ESQUERDA: SELEÇÃO DE MOTOS -->
-                <div class="w-full md:w-1/2 glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="font-orbitron font-bold text-xl text-cyan-400 flex items-center gap-2">
-                                <i class="fa-solid fa-motorcycle"></i> Minhas Motos
-                            </h2>
-                            <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 font-semibold" id="garageCount">1 / 4 Desbloqueadas</span>
-                        </div>
-
-                        <!-- CARROSEL / SELETOR DE MOTO -->
-                        <div class="relative bg-slate-950 p-6 rounded-xl border border-slate-800 text-center mb-4 min-h-[220px] flex flex-col justify-center items-center">
-                            <!-- Canvas Preview da Moto na Garagem -->
-                            <canvas id="garageCanvas" width="280" height="110" class="mb-2"></canvas>
-                            
-                            <h3 id="garageMotoName" class="font-orbitron font-extrabold text-2xl text-amber-400">Pop 110 Sport</h3>
-                            <p id="garageMotoDesc" class="text-xs text-slate-400 mt-1">Moto leve ideal para início de carreira.</p>
-
-                            <!-- Botões de Navegação da Garagem -->
-                            <button onclick="cycleMoto(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 flex items-center justify-center border border-slate-700">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <button onclick="cycleMoto(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 flex items-center justify-center border border-slate-700">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        </div>
-
-                        <!-- BARRA DE STATUS DA MOTO -->
-                        <div class="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                            <div>
-                                <div class="flex justify-between text-xs font-bold mb-1">
-                                    <span class="text-slate-400">Potência Bruta (CV)</span>
-                                    <span id="statPower" class="text-amber-400">12 CV</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                                    <div id="barPower" class="bg-amber-400 h-full w-1/4"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-xs font-bold mb-1">
-                                    <span class="text-slate-400">Velocidade Máxima Estimada</span>
-                                    <span id="statTopSpeed" class="text-cyan-400">110 km/h</span>
-                                </div>
-                                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                                    <div id="barTopSpeed" class="bg-cyan-400 h-full w-1/4"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BOTÃO DE SELECIONAR OU COMPRAR MOTO -->
-                    <div class="mt-4">
-                        <button id="btnSelectOrBuyMoto" onclick="handleMotoAction()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-orbitron font-bold rounded-xl transition shadow-lg text-center">
-                            EQUIPADA
-                        </button>
-                    </div>
-
-                </div>
-
-                <!-- DIREITA: TUNING & PEÇAS DE DESEMPENHO -->
-                <div class="w-full md:w-1/2 glass-panel p-5 rounded-2xl border border-slate-800">
-                    <h2 class="font-orbitron font-bold text-xl text-amber-400 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-screwdriver-wrench"></i> Peças & Preparação (Tuning)
-                    </h2>
-
-                    <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                        
-                        <!-- PEÇA 1: ESCAPAMENTO ESPORTIVO -->
-                        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
-                                    <i class="fa-solid fa-fire text-amber-500"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-200">Escapamento Esportivo (Corte)</h4>
-                                    <p class="text-xs text-slate-400">+5 CV | Resposta de RPM mais rápida</p>
-                                </div>
-                            </div>
-                            <button id="btnUpgradeExhaust" onclick="buyUpgrade('exhaust')" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-lg border border-amber-500/40 transition">
-                                R$ 400
-                            </button>
-                        </div>
-
-                        <!-- PEÇA 2: PNEU SLICK ARRANCADA -->
-                        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg">
-                                    <i class="fa-solid fa-circle-notch"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-200">Pneu Slick de Arrancada</h4>
-                                    <p class="text-xs text-slate-400">Grip Máximo na Largada (0% Patinar)</p>
-                                </div>
-                            </div>
-                            <button id="btnUpgradeTires" onclick="buyUpgrade('tires')" class="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-xs rounded-lg border border-cyan-500/40 transition">
-                                R$ 600
-                            </button>
-                        </div>
-
-                        <!-- PEÇA 3: REMAP DE INJEÇÃO & TURBO -->
-                        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 text-lg">
-                                    <i class="fa-solid fa-bolt"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-200">Kit Turbo & Remap ECU</h4>
-                                    <p class="text-xs text-slate-400">+15 CV | Velocidade Final Elevada</p>
-                                </div>
-                            </div>
-                            <button id="btnUpgradeTurbo" onclick="buyUpgrade('turbo')" class="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold text-xs rounded-lg border border-red-500/40 transition">
-                                R$ 1.200
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
+            <div class="flex space-x-3 pt-2">
+              <button onclick="resetRace()" class="flex-1 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl shadow-lg btn-action">
+                <i class="fa-solid fa-rotate-right mr-2"></i>REVANCHE
+              </button>
+              <button onclick="switchTab('garage')" class="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron font-bold rounded-xl">
+                GARAGEM
+              </button>
             </div>
+          </div>
+        </div>
 
-        </section>
+      </section>
 
-        <!-- ==================== TELA 3: LEADERBOARD / RANKING DOS JOGADORES ==================== -->
-        <section id="tabRanking" class="w-full hidden flex-col gap-4">
-            <div class="glass-panel p-6 rounded-2xl border border-slate-800 max-w-3xl mx-auto w-full">
-                
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="font-orbitron font-extrabold text-2xl text-amber-400 flex items-center gap-2">
-                            <i class="fa-solid fa-trophy"></i> Ranking dos Pilotos — 420 Metros
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Recordes de arrancada registrados no Auto Giro</p>
-                    </div>
-                    <button onclick="loadLeaderboard()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-xs text-slate-300 font-bold">
-                        <i class="fa-solid fa-rotate"></i> Atualizar
-                    </button>
-                </div>
+      <!-- TAB 3: LEADERBOARD & LOBBY OVERLAY -->
+      <section id="viewLobby" class="hidden h-full flex-col justify-start space-y-4 p-2 overflow-y-auto interactive-ui">
+        <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full text-xs font-bold font-orbitron">MULTIPLAYER LOBBY 3D</span>
+            <h2 class="text-xl font-orbitron font-black text-white mt-2">Salas de Arrancada & Ranking Global</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Desafie pilotos reais na reta de 420 metros.</p>
+          </div>
+          <button onclick="alert('Criando nova sala de arrancada 3D...')" class="px-5 py-3 bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-orbitron font-black text-xs rounded-xl shadow-lg btn-action">
+            <i class="fa-solid fa-plus-circle mr-2"></i>CRIAR SALA 3D
+          </button>
+        </div>
 
-                <!-- TABELA DE CLASSIFICAÇÃO -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase font-orbitron">
-                                <th class="py-3 px-3"># Pos</th>
-                                <th class="py-3 px-3">Piloto (Participante)</th>
-                                <th class="py-3 px-3">Moto</th>
-                                <th class="py-3 px-3 text-right">Tempo (420m)</th>
-                                <th class="py-3 px-3 text-right">Vel. Máx</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/50 text-sm font-semibold">
-                            <!-- Preenchido via JS -->
-                        </tbody>
-                    </table>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Rooms List -->
+          <div class="lg:col-span-2 glass-panel p-4 rounded-2xl space-y-3">
+            <h3 class="text-sm font-orbitron font-bold text-cyan-400 border-b border-slate-800 pb-2"><i class="fa-solid fa-server mr-2"></i>Salas Online</h3>
+            <div class="space-y-2.5 font-orbitron text-xs" id="roomsList3d"></div>
+          </div>
 
+          <!-- Global Ranking -->
+          <div class="glass-panel p-4 rounded-2xl space-y-3">
+            <h3 class="text-sm font-orbitron font-bold text-yellow-400 border-b border-slate-800 pb-2"><i class="fa-solid fa-trophy mr-2"></i>Recordes 420m</h3>
+            <div class="space-y-2 font-orbitron text-xs" id="leaderboardList3d"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: GROUP 5 TEAM OVERLAY -->
+      <section id="viewTeam" class="hidden h-full flex-col justify-start p-2 overflow-y-auto interactive-ui">
+        <div class="glass-panel p-6 rounded-2xl space-y-6">
+          <div>
+            <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full text-xs font-bold font-orbitron">
+              PROGRAMAÇÃO APLICADA — PROTÓTIPO 3D
+            </span>
+            <h2 class="text-2xl font-orbitron font-black text-white mt-2">AUTO GIRO 3D — GRUPO 5</h2>
+            <p class="text-slate-300 text-xs sm:text-sm mt-2">
+              Desenvolvido em WebGL (Three.js) com física de rotação, conta-giros, corte de giro com efeito de labareda no escapamento, e modelos 3D inspirados nos maiores clássicos de arrancada do Brasil.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="text-base font-orbitron font-bold text-slate-200 border-b border-slate-800 pb-2 mb-3"><i class="fa-solid fa-users text-cyan-400 mr-2"></i>Integrantes do Grupo 5</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">MJ</div>
+                <div><div class="font-bold text-slate-200 text-xs">Maria Juliana</div><div class="text-[10px] text-slate-400">Ferreira da Silva</div></div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">AC</div>
+                <div><div class="font-bold text-slate-200 text-xs">Ana Cláudia</div><div class="text-[10px] text-slate-400">Vieira da Silva</div></div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">PQ</div>
+                <div><div class="font-bold text-slate-200 text-xs">Pedro Eduardo</div><div class="text-[10px] text-slate-400">Queiroz da Silva</div></div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">PL</div>
+                <div><div class="font-bold text-slate-200 text-xs">Pedro Lucas Whylace</div><div class="text-[10px] text-slate-400">Alves e Silva</div></div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">JD</div>
+                <div><div class="font-bold text-slate-200 text-xs">José Daniel</div><div class="text-[10px] text-slate-400">Barbosa dos Santos Silva</div></div>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 font-orbitron font-bold flex items-center justify-center text-xs">RV</div>
+                <div><div class="font-bold text-slate-200 text-xs">Ryan Valdemir</div><div class="text-[10px] text-slate-400">Alvez da Silva</div></div>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
-    </main>
+    </div>
+  </main>
 
-    <!-- FOOTER COM CRÉDITOS DAS INTEGRANTES DO GRUPO 5 -->
-    <footer class="w-full bg-slate-950 border-t border-slate-800 py-3 px-4 text-center text-xs text-slate-500">
-        <p class="font-semibold text-slate-400">Auto Giro &copy; Grupo 5 — Programação Aplicada</p>
-        <p class="mt-0.5 text-[11px] text-slate-500">
-            Equipe: Maria Juliana | Ana Cláudia | Pedro Eduardo | Pedro Lucas Whylace | José Daniel | Ryan Valdemir
-        </p>
-    </footer>
+  <!-- ACCOUNT AUTH MODAL -->
+  <div id="authModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div class="glass-panel p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-orbitron font-bold text-base text-white"><i class="fa-solid fa-user-plus mr-2 text-cyan-400"></i>Perfil de Conta</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
 
-    <!-- ==================== LOGICA JAVASCRIPT DO JOGO ==================== -->
-    <script>
-        /* ==================== ESTADO GLOBAL E DADOS ==================== */
-        const TRACK_LENGTH_METERS = 420;
+      <div class="space-y-3 font-orbitron">
+        <div>
+          <label class="text-xs font-bold text-slate-400 block mb-1">Nome de Piloto:</label>
+          <input id="inputNickname" type="text" placeholder="Ex: Titan_Bolada_G5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs focus:outline-none focus:border-cyan-500 text-white">
+        </div>
+      </div>
 
-        // Dados das Motos Disponíveis
-        const MOTOS_DATA = [
-            {
-                id: 'pop110',
-                name: 'Pop 110 Sport',
-                desc: 'Moto de entrada leve e ágil. Ótima para pegar o jeito no semáforo.',
-                basePower: 12,
-                topSpeed: 125,
-                price: 0,
-                color: '#ef4444', // Vermelho
-                unlocked: true
-            },
-            {
-                id: 'titan160',
-                name: 'Titan 160 Fuçada',
-                desc: 'Clássica da cidade com kit 190cc e comando preparado.',
-                basePower: 22,
-                topSpeed: 165,
-                price: 1200,
-                color: '#3b82f6', // Azul
-                unlocked: false
-            },
-            {
-                id: 'hornet600',
-                name: 'Hornet 600 Carburada',
-                desc: 'Motor 4 cilindros com ronco inconfundível e forte aceleração.',
-                basePower: 48,
-                topSpeed: 215,
-                price: 3500,
-                color: '#eab308', // Amarelo
-                unlocked: false
-            },
-            {
-                id: 'xj6turbo',
-                name: 'XJ6 Turbo Pro',
-                desc: 'Monstro das pistas de 420m. Equipada com caracol de turbo.',
-                basePower: 85,
-                topSpeed: 270,
-                price: 7000,
-                color: '#06b6d4', // Ciano Neon
-                unlocked: false
-            }
-        ];
+      <button onclick="saveAccountProfile()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold rounded-xl shadow-lg btn-action">
+        SALVAR PERFIL
+      </button>
+    </div>
+  </div>
 
-        // Rivais / Lista do Grupo 5
-        const OPPONENTS = [
-            { name: 'Pedro Lucas (Rival)', motoId: 'titan160', baseTime: 11.2 },
-            { name: 'Ryan Valdemir', motoId: 'pop110', baseTime: 13.5 },
-            { name: 'José Daniel', motoId: 'hornet600', baseTime: 9.8 },
-            { name: 'Ana Cláudia', motoId: 'titan160', baseTime: 11.8 },
-            { name: 'Maria Juliana', motoId: 'xj6turbo', baseTime: 8.5 },
-            { name: 'Pedro Eduardo', motoId: 'hornet600', baseTime: 9.4 }
-        ];
+  <footer class="glass-panel py-2 px-4 text-center text-[11px] text-slate-500 font-orbitron relative z-50">
+    AUTO GIRO 3D &copy; 2026 — Grupo 5 | Simulador de Arrancada em WebGL
+  </footer>
 
-        // Estado do Jogador
-        let player = {
-            money: 1500,
-            currentMotoIdx: 0,
-            upgrades: {
-                exhaust: false,
-                tires: false,
-                turbo: false
-            }
-        };
+  <!-- THREE.JS & GAME ENGINE CODE -->
+  <script>
+    /* ==========================================================================
+       1. DATA MODELS & STATE
+       ========================================================================== */
+    const TRACK_LENGTH = 420;
+    const MAX_RPM = 13500;
+    const IDLE_RPM = 1200;
+    const SWEET_RPM_MIN = 8500;
+    const SWEET_RPM_MAX = 10500;
+    const REDLINE_RPM = 11800;
 
-        // Estado da Prova / Simulação Física
-        let raceState = 'IDLE'; // IDLE, COUNTDOWN, RACING, FINISHED, FALSE_START
-        let treeStep = 0;
-        let treeTimer = null;
-        let raceStartTime = 0;
-        let finalTime = 0;
-        let maxSpeedReached = 0;
-        let reactionTime = 0;
-        let selectedOpponent = OPPONENTS[0];
+    const REAL_BIKES_3D = [
+      {
+        id: 'titan160',
+        name: 'HONDA TITAN 160 FUÇADA',
+        category: 'Street 160cc',
+        power: 52,
+        powerMult: 1.0,
+        maxSpeed: 185,
+        engine: '160 cc',
+        torque: '4.8 kgfm',
+        desc: 'Comando bravo, pistão KMP taxado e escapamento estralador de titânio.',
+        color: 0x06b6d4,
+        type: 'street'
+      },
+      {
+        id: 'hornet600',
+        name: 'HONDA CB 600F HORNET',
+        category: 'Naked 600cc',
+        power: 102,
+        powerMult: 1.48,
+        maxSpeed: 250,
+        engine: '600 cc 4-Cil',
+        torque: '6.5 kgfm',
+        desc: 'O ronco inconfundível do motor 4 cilindros carburado com ponteira Jeskap.',
+        color: 0xeab308,
+        type: 'naked'
+      },
+      {
+        id: 'xj6n',
+        name: 'YAMAHA XJ6 N',
+        category: 'Naked 600cc',
+        power: 118,
+        powerMult: 1.62,
+        maxSpeed: 265,
+        engine: '600 cc DOHC',
+        torque: '6.9 kgfm',
+        desc: 'Chassi tubular em diamante e entrega constante de torque na pista.',
+        color: 0xa855f7,
+        type: 'naked'
+      },
+      {
+        id: 's1000rr',
+        name: 'BMW S1000RR',
+        category: 'Superbike 1000cc',
+        power: 207,
+        powerMult: 2.2,
+        maxSpeed: 330,
+        engine: '999 cc ShiftCam',
+        torque: '11.5 kgfm',
+        desc: 'Superbike de corrida com asas aerodinâmicas e quickshifter bidirecional.',
+        color: 0x10b981,
+        type: 'superbike'
+      }
+    ];
 
-        // Física da Moto do Jogador
-        let playerBike = {
-            dist: 0, // metros
-            speed: 0, // km/h
-            gear: 1,
-            rpm: 1000,
-            isAccelerating: false,
-            falseStart: false
-        };
+    let userAccount = {
+      nickname: 'Piloto_G5',
+      cash: 2500,
+      level: 1,
+      bestTime: 8.940
+    };
 
-        // Física do Oponente
-        let oppBike = {
-            dist: 0,
-            speed: 0,
-            targetTime: 11.0
-        };
+    let selectedBikeIndex = 0;
+    let currentBikeColor = 0x06b6d4;
+    let currentWheelColor = 0xe2e8f0;
+    let currentRiderColor = 0xf97316;
 
-        // Elementos Canvas
-        let canvas, ctx;
-        let garageCanvas, garageCtx;
+    let raceState = {
+      active: false,
+      countdownPhase: 'STOPPED',
+      startTime: 0,
+      reactionTime: 0,
+      elapsedTime: 0,
+      distance: 0,
+      speed: 0,
+      rpm: IDLE_RPM,
+      gear: 0,
+      isThrottling: false,
+      topSpeed: 0,
+      isRedlining: false,
+      perfectShiftsCount: 0,
+      totalShiftsCount: 0,
 
-        /* ==================== INICIALIZAÇÃO DO JOGO ==================== */
-        window.onload = function() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
+      oppDistance: 0,
+      oppSpeed: 0
+    };
 
-            garageCanvas = document.getElementById('garageCanvas');
-            garageCtx = garageCanvas.getContext('2d');
+    /* ==========================================================================
+       2. THREE.JS ENGINE SETUP & 3D MODELS
+       ========================================================================== */
+    let scene, camera, renderer;
+    let playerBikeGroup, oppBikeGroup;
+    let playerWheels = [], oppWheels = [];
+    let exhaustFlameMesh;
+    let currentViewMode = 'garage'; // 'garage' or 'race'
+    let cameraPreset = 'chase';
 
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+    function initThreeEngine() {
+      const container = document.getElementById('webgl-container');
+      
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x030712);
+      scene.fog = new THREE.FogExp2(0x030712, 0.008);
 
-            // Setup de Eventos de Teclado
-            setupKeyboardControls();
+      // Camera
+      camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
 
-            // Popular Select de Adversários
-            populateOpponentsSelect();
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
 
-            // Atualizar UI Inicial
-            updatePlayerUI();
-            drawGaragePreview();
-            loadLeaderboard();
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
 
-            // Iniciar Loop do Canvas
-            requestAnimationFrame(gameLoop);
-        };
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+      dirLight.position.set(20, 40, 20);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
 
-        function resizeCanvas() {
-            if (!canvas) return;
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+      // Build 3D Drag Track
+      build3DTrack();
+
+      // Build 3D Bikes
+      playerBikeGroup = build3DBikeMesh(currentBikeColor, currentWheelColor, currentRiderColor, playerWheels);
+      playerBikeGroup.position.set(-1.8, 0, 0);
+      scene.add(playerBikeGroup);
+
+      oppBikeGroup = build3DBikeMesh(0xef4444, 0xe2e8f0, 0x3b82f6, oppWheels);
+      oppBikeGroup.position.set(1.8, 0, 0);
+      scene.add(oppBikeGroup);
+
+      // Create Backfire Exhaust Flame Particle
+      const flameGeo = new THREE.ConeGeometry(0.18, 0.8, 8);
+      flameGeo.rotateX(-Math.PI / 2);
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+      exhaustFlameMesh = new THREE.Mesh(flameGeo, flameMat);
+      exhaustFlameMesh.position.set(0, 0.4, -1.6);
+      exhaustFlameMesh.visible = false;
+      playerBikeGroup.add(exhaustFlameMesh);
+
+      window.addEventListener('resize', onWindowResize);
+      setupGarageCamera();
+    }
+
+    function build3DTrack() {
+      // Asphalt Track
+      const trackGeo = new THREE.PlaneGeometry(16, 600);
+      const trackMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
+      const track = new THREE.Mesh(trackGeo, trackMat);
+      track.rotation.x = -Math.PI / 2;
+      track.position.set(0, 0, 250);
+      scene.add(track);
+
+      // White Center & Side Lines
+      const lineGeo = new THREE.PlaneGeometry(0.3, 600);
+      const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const centerLine = new THREE.Mesh(lineGeo, lineMat);
+      centerLine.rotation.x = -Math.PI / 2;
+      centerLine.position.set(0, 0.01, 250);
+      scene.add(centerLine);
+
+      // Distance Markers
+      for (let d = 50; d <= 420; d += 50) {
+        const markerGeo = new THREE.BoxGeometry(0.2, 3, 0.2);
+        const markerMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+        const marker = new THREE.Mesh(markerGeo, markerMat);
+        marker.position.set(-8, 1.5, d);
+        scene.add(marker);
+      }
+    }
+
+    /* Create Detailed Procedural 3D Bike Mesh */
+    function build3DBikeMesh(bodyCol, wheelCol, riderCol, wheelArray) {
+      const bikeGroup = new THREE.Group();
+
+      // Main Fairing Body
+      const bodyGeo = new THREE.BoxGeometry(0.6, 0.7, 1.8);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: bodyCol, metalness: 0.5, roughness: 0.3 });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.set(0, 0.7, 0);
+      bikeGroup.add(body);
+
+      // Gas Tank
+      const tankGeo = new THREE.SphereGeometry(0.4, 16, 16);
+      tankGeo.scale(1, 0.8, 1.4);
+      const tank = new THREE.Mesh(tankGeo, bodyMat);
+      tank.position.set(0, 0.9, 0.2);
+      bikeGroup.add(tank);
+
+      // Wheels (Front and Rear)
+      const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.25, 24);
+      wheelGeo.rotateZ(Math.PI / 2);
+      const wheelMat = new THREE.MeshStandardMaterial({ color: wheelCol, metalness: 0.8 });
+
+      const frontWheel = new THREE.Mesh(wheelGeo, wheelMat);
+      frontWheel.position.set(0, 0.45, 1.1);
+      bikeGroup.add(frontWheel);
+
+      const rearWheel = new THREE.Mesh(wheelGeo, wheelMat);
+      rearWheel.position.set(0, 0.45, -1.0);
+      bikeGroup.add(rearWheel);
+
+      wheelArray.push(frontWheel, rearWheel);
+
+      // Engine Block
+      const engineGeo = new THREE.BoxGeometry(0.5, 0.5, 0.7);
+      const engineMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
+      const engine = new THREE.Mesh(engineGeo, engineMat);
+      engine.position.set(0, 0.4, 0.1);
+      bikeGroup.add(engine);
+
+      // Exhaust Pipe
+      const exhaustGeo = new THREE.CylinderGeometry(0.08, 0.12, 1.2, 12);
+      exhaustGeo.rotateX(Math.PI / 2);
+      const exhaustMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 });
+      const exhaust = new THREE.Mesh(exhaustGeo, exhaustMat);
+      exhaust.position.set(0.3, 0.35, -0.7);
+      bikeGroup.add(exhaust);
+
+      // 3D Rider Figure
+      const riderGroup = new THREE.Group();
+      
+      // Torso
+      const torsoGeo = new THREE.BoxGeometry(0.5, 0.7, 0.4);
+      const suitMat = new THREE.MeshStandardMaterial({ color: riderCol, roughness: 0.6 });
+      const torso = new THREE.Mesh(torsoGeo, suitMat);
+      torso.position.set(0, 1.1, -0.2);
+      torso.rotation.x = 0.4; // Tucked racing position
+      riderGroup.add(torso);
+
+      // Helmet
+      const helmetGeo = new THREE.SphereGeometry(0.22, 16, 16);
+      const helmetMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2 });
+      const helmet = new THREE.Mesh(helmetGeo, helmetMat);
+      helmet.position.set(0, 1.45, 0.05);
+      riderGroup.add(helmet);
+
+      bikeGroup.add(riderGroup);
+
+      return bikeGroup;
+    }
+
+    function updateBikeColors3D() {
+      playerBikeGroup.children[0].material.color.setHex(currentBikeColor);
+      playerBikeGroup.children[1].material.color.setHex(currentBikeColor);
+      playerWheels[0].material.color.setHex(currentWheelColor);
+      playerWheels[1].material.color.setHex(currentWheelColor);
+    }
+
+    /* ==========================================================================
+       3. ENGINE ANIMATION & CAMERA LOGIC
+       ========================================================================== */
+    function animateThreeEngine() {
+      requestAnimationFrame(animateThreeEngine);
+
+      if (currentViewMode === 'garage') {
+        playerBikeGroup.rotation.y += 0.008;
+      } else if (currentViewMode === 'race') {
+        // Rotate wheels when moving
+        const rotSpeed = raceState.speed * 0.08;
+        playerWheels.forEach(w => w.rotation.x += rotSpeed);
+        oppWheels.forEach(w => w.rotation.x += raceState.oppSpeed * 0.08);
+
+        // Update 3D Positions on Track
+        playerBikeGroup.position.z = raceState.distance;
+        oppBikeGroup.position.z = raceState.oppDistance;
+
+        // Exhaust backfire visibility
+        if (exhaustFlameMesh) {
+          exhaustFlameMesh.visible = raceState.isRedlining || (raceState.isThrottling && Math.random() < 0.1);
         }
 
-        /* ==================== SISTEMA DE CORRIDA E FÍSICA ==================== */
-
-        function startRaceCountdown() {
-            if (raceState === 'RACING' || raceState === 'COUNTDOWN') return;
-
-            // Resetar Variáveis da Moto
-            playerBike.dist = 0;
-            playerBike.speed = 0;
-            playerBike.gear = 1;
-            playerBike.rpm = 1000;
-            playerBike.falseStart = false;
-
-            oppBike.dist = 0;
-            oppBike.speed = 0;
-
-            document.getElementById('modalResult').classList.add('hidden');
-            raceState = 'COUNTDOWN';
-            treeStep = 0;
-            updateTreeLights();
-
-            updateStatusMsg('PREPARE-SE!', 'text-yellow-400', 'Aguarde o sinal verde...');
-
-            // Sequência do Semáforo (Amarelo 1, 2, 3 -> Verde)
-            if (treeTimer) clearInterval(treeTimer);
-            
-            const countdownStartTime = performance.now();
-
-            treeTimer = setInterval(() => {
-                treeStep++;
-                updateTreeLights();
-
-                if (treeStep === 4) { // VERDE!
-                    clearInterval(treeTimer);
-                    raceState = 'RACING';
-                    raceStartTime = performance.now();
-                    updateStatusMsg('VAI! VAI! VAI!', 'text-emerald-400', 'Acelere ao máximo!');
-                    
-                    // Se o jogador já estava segurando acelerador na largada
-                    if (playerBike.isAccelerating) {
-                        reactionTime = 0.05;
-                    } else {
-                        reactionTime = 0.25; // Reação média estimada se apertar depois
-                    }
-                }
-            }, 750);
+        // Camera Follow
+        if (cameraPreset === 'chase') {
+          camera.position.set(playerBikeGroup.position.x, 2.8, playerBikeGroup.position.z - 5.5);
+          camera.lookAt(playerBikeGroup.position.x, 1.2, playerBikeGroup.position.z + 10);
+        } else if (cameraPreset === 'side') {
+          camera.position.set(playerBikeGroup.position.x - 7, 2.0, playerBikeGroup.position.z + 2);
+          camera.lookAt(playerBikeGroup.position.x, 1.0, playerBikeGroup.position.z + 2);
         }
+      }
 
-        function triggerFalseStart() {
-            clearInterval(treeTimer);
-            raceState = 'FALSE_START';
-            playerBike.falseStart = true;
-            updateStatusMsg('QUEIMA DE LARGADA!', 'text-red-500', 'Você acelerou antes do verde!');
-            
-            // Ativar luzes vermelhas no semáforo
-            document.getElementById('lightRed').className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-600 border-2 border-white glow-red';
+      renderer.render(scene, camera);
+    }
 
-            setTimeout(() => {
-                resetRace();
-            }, 2500);
+    function setupGarageCamera() {
+      currentViewMode = 'garage';
+      playerBikeGroup.position.set(0, 0, 0);
+      oppBikeGroup.visible = false;
+      camera.position.set(0, 1.8, 4.0);
+      camera.lookAt(0, 0.8, 0);
+    }
+
+    function setupRaceCamera() {
+      currentViewMode = 'race';
+      playerBikeGroup.rotation.y = 0;
+      playerBikeGroup.position.set(-1.8, 0, 0);
+      oppBikeGroup.visible = true;
+      oppBikeGroup.position.set(1.8, 0, 0);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('webgl-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    /* ==========================================================================
+       4. RACE PHYSICS & DRAG SIMULATION
+       ========================================================================== */
+    function resetRace() {
+      const bike = REAL_BIKES_3D[selectedBikeIndex];
+
+      raceState = {
+        active: true,
+        countdownPhase: 'STOPPED',
+        startTime: 0,
+        reactionTime: 0,
+        elapsedTime: 0,
+        distance: 0,
+        speed: 0,
+        rpm: IDLE_RPM,
+        gear: 0,
+        isThrottling: false,
+        topSpeed: 0,
+        isRedlining: false,
+        perfectShiftsCount: 0,
+        totalShiftsCount: 0,
+        oppDistance: 0,
+        oppSpeed: 0
+      };
+
+      setupRaceCamera();
+      document.getElementById('finishOverlay').classList.add('hidden');
+      document.getElementById('redlineAlert').classList.add('hidden');
+      showShiftFeedback("PREPARE-SE NA LINHA", "border-slate-700 bg-slate-900 text-slate-300");
+
+      startCountdownSequence();
+      let lastTime = performance.now();
+
+      function racePhysicsLoop(now) {
+        let dt = (now - lastTime) / 1000;
+        if (dt > 0.1) dt = 0.1;
+        lastTime = now;
+
+        if (raceState.active) {
+          updatePhysics(dt, bike);
+          updateHUD();
+          requestAnimationFrame(racePhysicsLoop);
         }
+      }
 
-        function resetRace() {
-            raceState = 'IDLE';
-            treeStep = 0;
-            playerBike.dist = 0;
-            playerBike.speed = 0;
-            playerBike.gear = 1;
-            playerBike.rpm = 1000;
-            oppBike.dist = 0;
-            document.getElementById('modalResult').classList.add('hidden');
-            updateTreeLights();
-            updateStatusMsg('PRONTO PARA LARGAR', 'text-cyan-400', 'Clique em ACELERAR para iniciar o semáforo');
-        }
+      requestAnimationFrame(racePhysicsLoop);
+    }
 
-        // Loop Principal de Atualização e Desenho
-        let lastTimestamp = 0;
-        function gameLoop(timestamp) {
-            const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.1);
-            lastTimestamp = timestamp;
+    function startCountdownSequence() {
+      raceState.countdownPhase = 'RED';
+      showShiftFeedback("ATENÇÃO... (SINAL VERMELHO)", "border-red-500 bg-red-950 text-red-400");
 
-            updatePhysics(dt);
-            drawRaceScene();
-            updateHUD();
+      setTimeout(() => {
+        if (!raceState.active) return;
+        raceState.countdownPhase = 'YELLOW';
+        showShiftFeedback("PRONTO... (SINAL AMARELO)", "border-yellow-500 bg-yellow-950 text-yellow-400");
 
-            requestAnimationFrame(gameLoop);
-        }
+        setTimeout(() => {
+          if (!raceState.active) return;
+          raceState.countdownPhase = 'RUNNING';
+          raceState.startTime = performance.now();
 
-        function updatePhysics(dt) {
-            if (raceState === 'COUNTDOWN') {
-                // Se acelerar durante o semáforo amarelo = Queima de Largada
-                if (playerBike.isAccelerating && treeStep < 4 && treeStep > 0) {
-                    triggerFalseStart();
-                }
-            }
+          if (raceState.rpm >= SWEET_RPM_MIN && raceState.rpm <= SWEET_RPM_MAX) {
+            raceState.gear = 1;
+            raceState.speed = 42 * REAL_BIKES_3D[selectedBikeIndex].powerMult;
+            raceState.reactionTime = 0.12;
+            showShiftFeedback("LARGADA PERFEITA! 🚀", "border-emerald-500 bg-emerald-950 text-emerald-400");
+          } else {
+            raceState.gear = 1;
+            raceState.speed = 22;
+            raceState.reactionTime = 0.28;
+            showShiftFeedback("LARGADA REGULAR", "border-yellow-500 bg-yellow-950 text-yellow-400");
+          }
+        }, 1000);
+      }, 1000);
+    }
 
-            if (raceState === 'RACING') {
-                const currentMoto = MOTOS_DATA[player.currentMotoIdx];
+    function updatePhysics(dt, bike) {
+      if (raceState.countdownPhase === 'RED' || raceState.countdownPhase === 'YELLOW') {
+        if (raceState.isThrottling) raceState.rpm += 14000 * dt;
+        else raceState.rpm -= 9000 * dt;
+        raceState.rpm = Math.max(IDLE_RPM, Math.min(MAX_RPM, raceState.rpm));
+        return;
+      }
 
-                // Calcular Potência com Upgrades
-                let totalPower = currentMoto.basePower;
-                if (player.upgrades.exhaust) totalPower += 5;
-                if (player.upgrades.turbo) totalPower += 15;
+      if (raceState.countdownPhase === 'RUNNING') {
+        raceState.elapsedTime = (performance.now() - raceState.startTime) / 1000;
+        let maxSpeedInGear = bike.maxSpeed * (raceState.gear / 6);
 
-                let maxSpeed = currentMoto.topSpeed;
-                if (player.upgrades.turbo) maxSpeed += 30;
-
-                // Dinâmica de RPM e Aceleração por Marcha
-                const gearRatios = [0, 35, 65, 100, 140, 185, maxSpeed]; // Velocidades máximas de cada marcha
-                const maxGearSpeed = gearRatios[playerBike.gear] || maxSpeed;
-
-                if (playerBike.isAccelerating) {
-                    // Aumentar RPM
-                    let rpmGain = 6000 * (totalPower / 25) * dt;
-                    playerBike.rpm = Math.min(playerBike.rpm + rpmGain, 11500);
-
-                    // Se a velocidade está abaixo do limite da marcha atual, ganha velocidade
-                    let accelFactor = (totalPower / 12) * (1 - (playerBike.speed / maxGearSpeed));
-                    if (playerBike.rpm > 10500) accelFactor *= 0.3; // Perda de potência no corte de giro
-
-                    playerBike.speed += accelFactor * 45 * dt;
-                } else {
-                    // Desacelerar / Freio de motor
-                    playerBike.rpm = Math.max(playerBike.rpm - 5000 * dt, 1000);
-                    playerBike.speed = Math.max(playerBike.speed - 15 * dt, 0);
-                }
-
-                // Limitar à velocidade máxima da moto
-                playerBike.speed = Math.min(playerBike.speed, maxSpeed);
-
-                // Converter km/h para metros/segundo (1 km/h = 0.277778 m/s)
-                const metersPerSec = playerBike.speed * 0.277778;
-                playerBike.dist += metersPerSec * dt;
-
-                if (playerBike.speed > maxSpeedReached) {
-                    maxSpeedReached = Math.round(playerBike.speed);
-                }
-
-                // Simulação de Física do Oponente
-                const oppSpeedMetersPerSec = (TRACK_LENGTH_METERS / selectedOpponent.baseTime);
-                oppBike.dist += oppSpeedMetersPerSec * dt;
-
-                // Verificação de Linha de Chegada (420 metros)
-                if (playerBike.dist >= TRACK_LENGTH_METERS && raceState === 'RACING') {
-                    finishRace();
-                }
-            }
-        }
-
-        function triggerShiftGear() {
-            if (raceState === 'IDLE') {
-                startRaceCountdown();
-                return;
-            }
-
-            if (raceState !== 'RACING') return;
-
-            if (playerBike.gear < 6) {
-                // Verificar se a troca foi na "Zona Perfeita" (entre 8800 RPM e 10200 RPM)
-                const isPerfectShift = playerBike.rpm >= 8800 && playerBike.rpm <= 10200;
-                
-                playerBike.gear++;
-                
-                // Queda de RPM ao engatar marcha mais alta
-                playerBike.rpm = Math.max(playerBike.rpm - 3500, 3000);
-
-                if (isPerfectShift) {
-                    // Bônus de arrancada instantânea na troca perfeita
-                    playerBike.speed += 8;
-                    showFloatingText("TROCA PERFEITA! +KM/H", "#22c55e");
-                }
-            }
-        }
-
-        function finishRace() {
-            raceState = 'FINISHED';
-            finalTime = (performance.now() - raceStartTime) / 1000;
-            
-            const isWinner = playerBike.dist >= oppBike.dist;
-            const prizeMoney = isWinner ? 500 : 150;
-            player.money += prizeMoney;
-
-            // Atualizar Modal de Resultados
-            document.getElementById('resTitle').textContent = isWinner ? 'VITÓRIA SENSACIONAL!' : 'DERROTA POR POUCO!';
-            document.getElementById('resTitle').className = `font-orbitron font-black text-3xl tracking-wider ${isWinner ? 'text-emerald-400' : 'text-red-400'}`;
-            document.getElementById('resTime').textContent = finalTime.toFixed(3) + 's';
-            document.getElementById('resSpeed').textContent = maxSpeedReached + ' km/h';
-            document.getElementById('resReaction').textContent = reactionTime.toFixed(2) + 's';
-            document.getElementById('resPrize').textContent = '+ R$ ' + prizeMoney;
-
-            document.getElementById('modalResult').classList.remove('hidden');
-            updatePlayerUI();
-
-            // Salvar no Leaderboard local se for um bom tempo
-            saveRecord(MOTOS_DATA[player.currentMotoIdx].name, finalTime, maxSpeedReached);
-        }
-
-        /* ==================== RENDERING / DESENHO NO CANVAS ==================== */
-
-        function drawRaceScene() {
-            if (!ctx) return;
-            const w = canvas.width;
-            const h = canvas.height;
-
-            // 1. Céu / Gradiente Urbano Noturno
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.5);
-            skyGrad.addColorStop(0, '#020617');
-            skyGrad.addColorStop(1, '#0f172a');
-            ctx.fillStyle = skyGrad;
-            ctx.fillRect(0, 0, w, h);
-
-            // 2. Cenário ao Fundo (Arquibancadas & Árvores/Postes em Movimento)
-            const trackOffset = (playerBike.dist * 20) % w;
-
-            // Arquibancada / Edifícios distantes
-            ctx.fillStyle = '#1e293b';
-            for (let x = -trackOffset; x < w; x += 120) {
-                ctx.fillRect(x, h * 0.25, 80, h * 0.25);
-            }
-
-            // Postes de Luz / Cenário
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 3;
-            for (let x = -trackOffset; x < w; x += 180) {
-                ctx.beginPath();
-                ctx.moveTo(x, h * 0.5);
-                ctx.lineTo(x, h * 0.2);
-                ctx.stroke();
-                
-                // Luz Amarela do Poste
-                ctx.fillStyle = '#fef08a';
-                ctx.beginPath();
-                ctx.arc(x, h * 0.2, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 3. Asfalto da Pista
-            const roadY = h * 0.48;
-            const roadHeight = h * 0.52;
-
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, roadY, w, roadHeight);
-
-            // Linhas Brancas Laterais
-            ctx.fillStyle = '#cbd5e1';
-            ctx.fillRect(0, roadY, w, 4);
-            ctx.fillRect(0, h - 10, w, 6);
-
-            // Linha Central Tracejada (Sensação de Velocidade)
-            ctx.fillStyle = '#e2e8f0';
-            const dashWidth = 40;
-            const dashGap = 30;
-            const dashOffset = (playerBike.dist * 35) % (dashWidth + dashGap);
-            for (let x = -dashOffset; x < w; x += dashWidth + dashGap) {
-                ctx.fillRect(x, roadY + roadHeight * 0.48, dashWidth, 4);
-            }
-
-            // 4. Marcação de Metros no Asfalto (0m, 100m, 200m, 300m, 420m)
-            ctx.font = 'bold 16px Orbitron';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            for (let m = 0; m <= TRACK_LENGTH_METERS; m += 100) {
-                const markerX = w * 0.15 + (m - playerBike.dist) * (w / 150);
-                if (markerX > -50 && markerX < w + 50) {
-                    ctx.fillRect(markerX, roadY, 3, roadHeight);
-                    ctx.fillText(`${m}M`, markerX + 6, roadY + 25);
-                }
-            }
-
-            // LINHA DE CHEGADA (420m) - Bandeira Quadriculada
-            const finishX = w * 0.15 + (TRACK_LENGTH_METERS - playerBike.dist) * (w / 150);
-            if (finishX > -50 && finishX < w + 100) {
-                // Desenhar Xadrez da Chegada
-                const squareSize = 12;
-                for (let ry = roadY; ry < h; ry += squareSize) {
-                    for (let rx = 0; rx < 36; rx += squareSize) {
-                        const isBlack = (Math.floor(ry / squareSize) + Math.floor(rx / squareSize)) % 2 === 0;
-                        ctx.fillStyle = isBlack ? '#000000' : '#ffffff';
-                        ctx.fillRect(finishX + rx, ry, squareSize, squareSize);
-                    }
-                }
-                ctx.fillStyle = '#22c55e';
-                ctx.fillText('FINISH 420M', finishX - 20, roadY - 10);
-            }
-
-            // 5. DESENHAR MOTO DO OPONENTE (Pista de Cima)
-            const oppX = w * 0.15 + (oppBike.dist - playerBike.dist) * (w / 150);
-            const oppY = roadY + roadHeight * 0.2;
-            drawBikeSprite(ctx, oppX, oppY, '#64748b', 'RIVAL');
-
-            // 6. DESENHAR MOTO DO JOGADOR (Pista de Baixo - Fixa no X)
-            const playerX = w * 0.15;
-            const playerY = roadY + roadHeight * 0.68;
-            const currentMotoColor = MOTOS_DATA[player.currentMotoIdx].color;
-            drawBikeSprite(ctx, playerX, playerY, currentMotoColor, 'VOCÊ', true);
-
-            // Efeito de Fumaça / Poeira em alta velocidade
-            if (raceState === 'RACING' && playerBike.speed > 50) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                for (let i = 0; i < 5; i++) {
-                    ctx.beginPath();
-                    ctx.arc(playerX - 20 - Math.random() * 30, playerY + 10 + Math.random() * 6, Math.random() * 8, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-        }
-
-        // Desenhar Sprite Vetorial de Moto
-        function drawBikeSprite(targetCtx, x, y, mainColor, label, isPlayer = false) {
-            targetCtx.save();
-            targetCtx.translate(x, y);
-
-            // Sombra
-            targetCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            targetCtx.beginPath();
-            targetCtx.ellipse(15, 12, 35, 6, 0, 0, Math.PI * 2);
-            targetCtx.fill();
-
-            // Rodas (Traseira e Dianteira)
-            targetCtx.strokeStyle = '#334155';
-            targetCtx.lineWidth = 5;
-            
-            // Roda Traseira
-            targetCtx.beginPath();
-            targetCtx.arc(-15, 0, 12, 0, Math.PI * 2);
-            targetCtx.stroke();
-
-            // Roda Dianteira
-            targetCtx.beginPath();
-            targetCtx.arc(45, 0, 12, 0, Math.PI * 2);
-            targetCtx.stroke();
-
-            // Carenagem da Moto
-            targetCtx.fillStyle = mainColor;
-            targetCtx.beginPath();
-            targetCtx.moveTo(-15, -8);
-            targetCtx.lineTo(10, -18);
-            targetCtx.lineTo(35, -12);
-            targetCtx.lineTo(40, -4);
-            targetCtx.lineTo(15, -2);
-            targetCtx.closePath();
-            targetCtx.fill();
-
-            // Piloto em posição aerodinâmica de arrancada
-            targetCtx.fillStyle = '#0f172a'; // Macacão Escuro
-            targetCtx.beginPath();
-            targetCtx.arc(5, -22, 7, 0, Math.PI * 2); // Capacete
-            targetCtx.fill();
-
-            // Corpo debruçado
-            targetCtx.strokeStyle = '#0f172a';
-            targetCtx.lineWidth = 4;
-            targetCtx.beginPath();
-            targetCtx.moveTo(5, -15);
-            targetCtx.lineTo(25, -10);
-            targetCtx.stroke();
-
-            // Rótulo / Nome
-            targetCtx.font = 'bold 10px Orbitron';
-            targetCtx.fillStyle = isPlayer ? '#38bdf8' : '#cbd5e1';
-            targetCtx.fillText(label, -10, -32);
-
-            targetCtx.restore();
-        }
-
-        /* ==================== INTERFACE E CONTROLES ==================== */
-
-        function setupKeyboardControls() {
-            window.addEventListener('keydown', (e) => {
-                if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-                    startGas();
-                }
-                if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ArrowRight') {
-                    triggerShiftGear();
-                }
-            });
-
-            window.addEventListener('keyup', (e) => {
-                if (e.code === 'ArrowUp' || e.code === 'KeyW') {
-                    stopGas();
-                }
-            });
-        }
-
-        function startGas(e) {
-            if (e) e.preventDefault();
-            playerBike.isAccelerating = true;
-            document.getElementById('btnGas').classList.add('brightness-125', 'scale-95');
-
-            if (raceState === 'IDLE') {
-                startRaceCountdown();
-            }
-        }
-
-        function stopGas(e) {
-            if (e) e.preventDefault();
-            playerBike.isAccelerating = false;
-            document.getElementById('btnGas').classList.remove('brightness-125', 'scale-95');
-        }
-
-        function updateHUD() {
-            // Atualizar Velocímetro e Marcha
-            document.getElementById('hudSpeed').textContent = Math.round(playerBike.speed);
-            document.getElementById('hudGear').textContent = playerBike.gear;
-
-            // Atualizar Cronômetro
-            if (raceState === 'RACING') {
-                const elapsed = (performance.now() - raceStartTime) / 1000;
-                document.getElementById('hudTimer').textContent = elapsed.toFixed(3) + 's';
-            } else if (raceState === 'IDLE') {
-                document.getElementById('hudTimer').textContent = '00.000s';
-            }
-
-            // Atualizar Telemetria de Distância
-            const distClamped = Math.min(playerBike.dist, TRACK_LENGTH_METERS);
-            document.getElementById('hudDistance').textContent = distClamped.toFixed(1);
-            document.getElementById('distanceBar').style.width = `${(distClamped / TRACK_LENGTH_METERS) * 100}%`;
-
-            // Atualizar Barra de RPM / Conta Giros
-            const rpmPct = Math.min((playerBike.rpm / 11500) * 100, 100);
-            const rpmBar = document.getElementById('rpmBar');
-            rpmBar.style.width = `${rpmPct}%`;
-
-            const shiftLight = document.getElementById('shiftLight');
-
-            if (playerBike.rpm >= 8800 && playerBike.rpm <= 10200) {
-                // Zona Perfeita de Troca!
-                shiftLight.textContent = 'TROQUE DE MARCHA!';
-                shiftLight.className = 'px-4 py-1 rounded-md font-orbitron font-extrabold text-xs tracking-wider uppercase bg-emerald-500 text-black glow-green animate-pulse';
-            } else if (playerBike.rpm > 10200) {
-                // Corte de Giro
-                shiftLight.textContent = 'CORTE DE GIRO!';
-                shiftLight.className = 'px-4 py-1 rounded-md font-orbitron font-extrabold text-xs tracking-wider uppercase bg-red-600 text-white glow-red';
+        if (raceState.isThrottling) {
+          if (raceState.gear > 0) {
+            if (raceState.rpm >= REDLINE_RPM) {
+              raceState.isRedlining = true;
+              document.getElementById('redlineAlert').classList.remove('hidden');
+              raceState.speed -= 10 * dt;
             } else {
-                shiftLight.textContent = 'RPM NORMAL';
-                shiftLight.className = 'px-4 py-1 rounded-md font-orbitron font-extrabold text-xs tracking-wider uppercase bg-slate-800 text-slate-500 border border-slate-700';
-            }
-        }
-
-        function updateTreeLights() {
-            const r = document.getElementById('lightRed');
-            const y1 = document.getElementById('lightYellow1');
-            const y2 = document.getElementById('lightYellow2');
-            const g = document.getElementById('lightGreen');
-
-            // Resetar Luzes
-            r.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-950 border-2 border-red-900';
-            y1.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-950 border-2 border-amber-900';
-            y2.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-950 border-2 border-amber-900';
-            g.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-950 border-2 border-emerald-900';
-
-            if (treeStep >= 1) y1.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-400 border-2 border-white glow-cyan';
-            if (treeStep >= 2) y2.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-400 border-2 border-white glow-cyan';
-            if (treeStep >= 3) r.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-500 border-2 border-white glow-red';
-            if (treeStep >= 4) g.className = 'w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500 border-2 border-white glow-green';
-        }
-
-        function updateStatusMsg(title, titleClass, subtitle) {
-            const st = document.getElementById('statusTitle');
-            const ss = document.getElementById('statusSubtitle');
-            st.textContent = title;
-            st.className = `font-orbitron font-black text-2xl sm:text-4xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] tracking-wider ${titleClass}`;
-            ss.textContent = subtitle;
-        }
-
-        /* ==================== TELA DA GARAGEM & COMPRAS ==================== */
-
-        function cycleMoto(dir) {
-            player.currentMotoIdx = (player.currentMotoIdx + dir + MOTOS_DATA.length) % MOTOS_DATA.length;
-            updateGarageView();
-        }
-
-        function updateGarageView() {
-            const moto = MOTOS_DATA[player.currentMotoIdx];
-
-            document.getElementById('garageMotoName').textContent = moto.name;
-            document.getElementById('garageMotoDesc').textContent = moto.desc;
-            document.getElementById('statPower').textContent = `${moto.basePower} CV`;
-            document.getElementById('statTopSpeed').textContent = `${moto.topSpeed} km/h`;
-
-            document.getElementById('barPower').style.width = `${(moto.basePower / 90) * 100}%`;
-            document.getElementById('barTopSpeed').style.width = `${(moto.topSpeed / 280) * 100}%`;
-
-            const btn = document.getElementById('btnSelectOrBuyMoto');
-            if (moto.unlocked) {
-                btn.textContent = 'MOTO EQUIPADA';
-                btn.className = 'w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-orbitron font-bold rounded-xl transition shadow-lg text-center';
-            } else {
-                btn.textContent = `COMPRAR POR R$ ${moto.price}`;
-                btn.className = 'w-full py-3 bg-gradient-to-r from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 font-orbitron font-bold rounded-xl transition shadow-lg text-center text-black';
+              raceState.isRedlining = false;
+              document.getElementById('redlineAlert').classList.add('hidden');
+              let accel = (55 * bike.powerMult);
+              if (raceState.speed < maxSpeedInGear) raceState.speed += accel * dt;
             }
 
-            drawGaragePreview();
+            let fillPct = raceState.speed / Math.max(1, maxSpeedInGear);
+            raceState.rpm = IDLE_RPM + fillPct * (MAX_RPM - IDLE_RPM);
+          } else {
+            raceState.rpm += 14000 * dt;
+          }
+        } else {
+          raceState.isRedlining = false;
+          document.getElementById('redlineAlert').classList.add('hidden');
+          raceState.speed -= 12 * dt;
+          raceState.rpm -= 8000 * dt;
         }
 
-        function handleMotoAction() {
-            const moto = MOTOS_DATA[player.currentMotoIdx];
-            if (!moto.unlocked) {
-                if (player.money >= moto.price) {
-                    player.money -= moto.price;
-                    moto.unlocked = true;
-                    updatePlayerUI();
-                    updateGarageView();
-                    showFloatingText("MOTO ADQUIRIDA COM SUCESSO!", "#22c55e");
-                } else {
-                    showFloatingText("SALDO INSUFICIENTE!", "#ef4444");
-                }
-            }
+        raceState.speed = Math.max(0, raceState.speed);
+        raceState.rpm = Math.max(IDLE_RPM, Math.min(MAX_RPM, raceState.rpm));
+        raceState.distance += (raceState.speed / 3.6) * dt;
+
+        if (raceState.speed > raceState.topSpeed) raceState.topSpeed = raceState.speed;
+
+        // Opponent Physics
+        if (raceState.oppDistance < TRACK_LENGTH) {
+          raceState.oppSpeed += (30 * bike.powerMult) * dt;
+          if (raceState.oppSpeed > bike.maxSpeed * 0.95) raceState.oppSpeed = bike.maxSpeed * 0.95;
+          raceState.oppDistance += (raceState.oppSpeed / 3.6) * dt;
         }
 
-        function buyUpgrade(type) {
-            const prices = { exhaust: 400, tires: 600, turbo: 1200 };
-            const price = prices[type];
-
-            if (player.upgrades[type]) {
-                showFloatingText("PEÇA JÁ EQUIPADA!", "#38bdf8");
-                return;
-            }
-
-            if (player.money >= price) {
-                player.money -= price;
-                player.upgrades[type] = true;
-
-                const btnId = type === 'exhaust' ? 'btnUpgradeExhaust' : type === 'tires' ? 'btnUpgradeTires' : 'btnUpgradeTurbo';
-                const btn = document.getElementById(btnId);
-                btn.textContent = 'EQUIPADO';
-                btn.className = 'px-3 py-1.5 bg-emerald-500/20 text-emerald-400 font-bold text-xs rounded-lg border border-emerald-500/40 cursor-default';
-
-                updatePlayerUI();
-                updateGarageView();
-                showFloatingText("UPGRADE INSTALADO!", "#22c55e");
-            } else {
-                showFloatingText("SALDO INSUFICIENTE!", "#ef4444");
-            }
+        if (raceState.distance >= TRACK_LENGTH) {
+          raceState.distance = TRACK_LENGTH;
+          raceState.countdownPhase = 'FINISHED';
+          finishRace();
         }
+      }
+    }
 
-        function drawGaragePreview() {
-            if (!garageCtx) return;
-            const w = garageCanvas.width;
-            const h = garageCanvas.height;
+    function handleShiftGear(direction) {
+      if (raceState.countdownPhase !== 'RUNNING') return;
 
-            garageCtx.clearRect(0, 0, w, h);
-            const currentMoto = MOTOS_DATA[player.currentMotoIdx];
+      if (direction === 1 && raceState.gear < 6) {
+        raceState.totalShiftsCount++;
+        const currentRpm = raceState.rpm;
+        raceState.gear++;
 
-            drawBikeSprite(garageCtx, w * 0.4, h * 0.7, currentMoto.color, currentMoto.name, true);
+        if (currentRpm >= SWEET_RPM_MIN && currentRpm <= SWEET_RPM_MAX) {
+          raceState.perfectShiftsCount++;
+          showShiftFeedback("MARCHA PERFEITA! ⚡", "border-emerald-500 bg-emerald-950 text-emerald-400");
+          raceState.speed += 12;
+          raceState.rpm = 7200;
+        } else if (currentRpm >= REDLINE_RPM) {
+          showShiftFeedback("CORTE DE GIRO! ⚠️", "border-red-500 bg-red-950 text-red-400");
+          raceState.rpm = 7800;
+        } else {
+          showShiftFeedback("MARCHA PRECOCE", "border-yellow-500 bg-yellow-950 text-yellow-400");
+          raceState.rpm = 5000;
         }
+      } else if (direction === -1 && raceState.gear > 1) {
+        raceState.gear--;
+        raceState.rpm = Math.min(MAX_RPM, raceState.rpm + 2800);
+      }
+    }
 
-        function updatePlayerUI() {
-            document.getElementById('playerMoney').textContent = `R$ ${player.money.toLocaleString('pt-BR')}`;
-            const unlockedCount = MOTOS_DATA.filter(m => m.unlocked).length;
-            document.getElementById('garageCount').textContent = `${unlockedCount} / ${MOTOS_DATA.length} Desbloqueadas`;
-        }
+    function finishRace() {
+      const shiftAccuracy = raceState.totalShiftsCount > 0 
+        ? Math.round((raceState.perfectShiftsCount / raceState.totalShiftsCount) * 100) 
+        : 100;
 
-        /* ==================== MULTIPLAYER & RIVAIS / LEADERBOARD ==================== */
+      document.getElementById('resPlayerTime').innerText = raceState.elapsedTime.toFixed(3) + 's';
+      document.getElementById('resReactionTime').innerText = raceState.reactionTime.toFixed(3) + 's';
+      document.getElementById('resTopSpeed').innerText = Math.round(raceState.topSpeed) + ' km/h';
+      document.getElementById('resShiftAccuracy').innerText = shiftAccuracy + '%';
 
-        function populateOpponentsSelect() {
-            const select = document.getElementById('selectOpponent');
-            select.innerHTML = '';
-            OPPONENTS.forEach((opp, idx) => {
-                const opt = document.createElement('option');
-                opt.value = idx;
-                opt.textContent = `${opp.name}`;
-                select.appendChild(opt);
-            });
-            changeOpponent();
-        }
+      document.getElementById('finishOverlay').classList.remove('hidden');
+    }
 
-        function changeOpponent() {
-            const idx = document.getElementById('selectOpponent').value;
-            selectedOpponent = OPPONENTS[idx];
-            const moto = MOTOS_DATA.find(m => m.id === selectedOpponent.motoId) || MOTOS_DATA[1];
-            document.getElementById('oppMotoName').textContent = moto.name;
-        }
+    /* ==========================================================================
+       5. CONTROLS, UI & LIFECYCLE
+       ========================================================================== */
+    window.onload = function() {
+      initThreeEngine();
+      animateThreeEngine();
 
-        function saveRecord(motoName, time, speed) {
-            let records = JSON.parse(localStorage.getItem('autoGiroLeaderboard')) || [
-                { name: 'José Daniel', moto: 'Hornet 600', time: 9.820, speed: 210 },
-                { name: 'Pedro Eduardo', moto: 'Hornet 600', time: 9.940, speed: 208 },
-                { name: 'Pedro Lucas', moto: 'Titan 160 Fuçada', time: 11.150, speed: 162 },
-                { name: 'Ana Cláudia', moto: 'Titan 160 Fuçada', time: 11.420, speed: 159 },
-                { name: 'Maria Juliana', moto: 'Pop 110 Sport', time: 13.110, speed: 122 },
-                { name: 'Ryan Valdemir', moto: 'Pop 110 Sport', time: 13.450, speed: 119 }
-            ];
+      renderBikeStrip();
+      setupControls();
+      renderLobbyData3D();
+    };
 
-            records.push({
-                name: 'Você (Piloto)',
-                moto: motoName,
-                time: parseFloat(time.toFixed(3)),
-                speed: speed
-            });
+    function setupControls() {
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') raceState.isThrottling = true;
+        if (e.key === 'ArrowRight') handleShiftGear(1);
+        if (e.key === 'ArrowLeft') handleShiftGear(-1);
+      });
 
-            // Ordenar por menor tempo
-            records.sort((a, b) => a.time - b.time);
-            records = records.slice(0, 8); // Manter top 8
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowUp') raceState.isThrottling = false;
+      });
 
-            localStorage.setItem('autoGiroLeaderboard', JSON.stringify(records));
-            loadLeaderboard();
-        }
+      const btnThrottle = document.getElementById('btnThrottle');
+      btnThrottle.addEventListener('mousedown', () => raceState.isThrottling = true);
+      btnThrottle.addEventListener('mouseup', () => raceState.isThrottling = false);
+      btnThrottle.addEventListener('mouseleave', () => raceState.isThrottling = false);
 
-        function loadLeaderboard() {
-            const tbody = document.getElementById('leaderboardBody');
-            tbody.innerHTML = '';
+      btnThrottle.addEventListener('touchstart', (e) => { e.preventDefault(); raceState.isThrottling = true; });
+      btnThrottle.addEventListener('touchend', (e) => { e.preventDefault(); raceState.isThrottling = false; });
+    }
 
-            let records = JSON.parse(localStorage.getItem('autoGiroLeaderboard')) || [
-                { name: 'José Daniel', moto: 'Hornet 600', time: 9.820, speed: 210 },
-                { name: 'Pedro Eduardo', moto: 'Hornet 600', time: 9.940, speed: 208 },
-                { name: 'Pedro Lucas', moto: 'Titan 160 Fuçada', time: 11.150, speed: 162 },
-                { name: 'Ana Cláudia', moto: 'Titan 160 Fuçada', time: 11.420, speed: 159 },
-                { name: 'Maria Juliana', moto: 'Pop 110 Sport', time: 13.110, speed: 122 },
-                { name: 'Ryan Valdemir', moto: 'Pop 110 Sport', time: 13.450, speed: 119 }
-            ];
+    function renderBikeStrip() {
+      const container = document.getElementById('bikes3dStrip');
+      container.innerHTML = REAL_BIKES_3D.map((bike, idx) => `
+        <div onclick="selectBike3D(${idx})" class="cursor-pointer p-2.5 rounded-xl border min-w-[140px] ${idx === selectedBikeIndex ? 'bg-slate-900 border-cyan-500' : 'bg-slate-950/60 border-slate-800'} transition-all">
+          <div class="text-[9px] font-orbitron text-cyan-400 font-bold uppercase">${bike.category}</div>
+          <div class="text-xs font-orbitron font-extrabold text-white truncate">${bike.name}</div>
+          <div class="text-[10px] font-orbitron text-slate-400 mt-1">${bike.power} HP | ${bike.maxSpeed} km/h</div>
+        </div>
+      `).join('');
+    }
 
-            records.forEach((rec, idx) => {
-                const tr = document.createElement('tr');
-                const isTop3 = idx < 3;
-                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+    function selectBike3D(index) {
+      selectedBikeIndex = index;
+      const bike = REAL_BIKES_3D[index];
+      currentBikeColor = bike.color;
 
-                tr.className = idx % 2 === 0 ? 'bg-slate-900/40' : 'bg-slate-900/80';
-                tr.innerHTML = `
-                    <td class="py-3 px-3 font-orbitron ${isTop3 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${medal}</td>
-                    <td class="py-3 px-3 font-bold text-slate-200">${rec.name}</td>
-                    <td class="py-3 px-3 text-slate-400 text-xs">${rec.moto}</td>
-                    <td class="py-3 px-3 text-right font-orbitron text-amber-400 font-bold">${rec.time.toFixed(3)}s</td>
-                    <td class="py-3 px-3 text-right font-orbitron text-cyan-400">${rec.speed} km/h</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+      document.getElementById('selectedBikeCategory').innerText = bike.category;
+      document.getElementById('selectedBikeTitle').innerText = bike.name;
+      document.getElementById('selectedBikeDesc').innerText = bike.desc;
+      document.getElementById('selectedBikePower').innerText = bike.power + ' HP';
 
-        /* ==================== NAVEGAÇÃO DE ABAS ==================== */
+      document.getElementById('statTopSpeed').innerText = bike.maxSpeed + ' km/h';
+      document.getElementById('statTorque').innerText = bike.torque;
+      document.getElementById('statEngine').innerText = bike.engine;
 
-        function switchTab(tabName) {
-            document.getElementById('tabRace').classList.add('hidden');
-            document.getElementById('tabGarage').classList.add('hidden');
-            document.getElementById('tabRanking').classList.add('hidden');
+      updateBikeColors3D();
+      renderBikeStrip();
+    }
 
-            document.getElementById('btnNavRace').className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition border border-slate-700';
-            document.getElementById('btnNavGarage').className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition border border-slate-700';
-            document.getElementById('btnNavRank').className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition border border-slate-700';
+    function setBikeColor3D(hex) { currentBikeColor = hex; updateBikeColors3D(); }
+    function setWheelColor3D(hex) { currentWheelColor = hex; updateBikeColors3D(); }
+    function setRiderColor3D(hex) { currentRiderColor = hex; updateBikeColors3D(); }
 
-            if (tabName === 'race') {
-                document.getElementById('tabRace').classList.remove('hidden');
-                document.getElementById('btnNavRace').className = 'px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm transition flex items-center gap-1.5 glow-cyan';
-                resizeCanvas();
-            } else if (tabName === 'garage') {
-                document.getElementById('tabGarage').classList.remove('hidden');
-                document.getElementById('tabGarage').classList.add('flex');
-                document.getElementById('btnNavGarage').className = 'px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm transition flex items-center gap-1.5 glow-cyan';
-                updateGarageView();
-            } else if (tabName === 'ranking') {
-                document.getElementById('tabRanking').classList.remove('hidden');
-                document.getElementById('tabRanking').classList.add('flex');
-                document.getElementById('btnNavRank').className = 'px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm transition flex items-center gap-1.5 glow-cyan';
-                loadLeaderboard();
-            }
-        }
+    function setCameraView(preset) {
+      cameraPreset = preset;
+    }
 
-        /* ==================== UTILITÁRIOS ==================== */
+    function renderLobbyData3D() {
+      const roomsList = document.getElementById('roomsList3d');
+      const leaderboardList = document.getElementById('leaderboardList3d');
 
-        function showFloatingText(text, color) {
-            const statusSubtitle = document.getElementById('statusSubtitle');
-            if (statusSubtitle) {
-                statusSubtitle.textContent = text;
-                statusSubtitle.style.color = color;
-                setTimeout(() => {
-                    statusSubtitle.style.color = '#e2e8f0';
-                }, 1500);
-            }
-        }
-    </script>
+      roomsList.innerHTML = `
+        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div><div class="font-bold text-white">Rua do Grau 3D (420m)</div><div class="text-slate-400">Piloto: Titan_Corte | Moto: TITAN 160</div></div>
+          <button onclick="switchTab('race')" class="px-3 py-1.5 bg-cyan-500 text-slate-950 font-bold rounded-lg">DESAFIAR</button>
+        </div>
+        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div><div class="font-bold text-white">Hornet vs S1000RR Superbike</div><div class="text-slate-400">Piloto: Speed_King | Moto: S1000RR</div></div>
+          <button onclick="switchTab('race')" class="px-3 py-1.5 bg-cyan-500 text-slate-950 font-bold rounded-lg">DESAFIAR</button>
+        </div>
+      `;
+
+      leaderboardList.innerHTML = `
+        <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between">
+          <span>1. Pedro_Lucas (S1000RR)</span><strong class="text-emerald-400">8.120s</strong>
+        </div>
+        <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between">
+          <span>2. Ryan_Valdemir (ZX10R)</span><strong class="text-emerald-400">8.340s</strong>
+        </div>
+        <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between">
+          <span>3. ${userAccount.nickname}</span><strong class="text-emerald-400">${userAccount.bestTime.toFixed(3)}s</strong>
+        </div>
+      `;
+    }
+
+    function updateHUD() {
+      document.getElementById('hudDistance').innerHTML = `${raceState.distance.toFixed(1)} <span class="text-xs text-slate-400">/ 420m</span>`;
+      document.getElementById('hudTimer').innerHTML = `${raceState.elapsedTime.toFixed(3)} <span class="text-xs text-slate-400">s</span>`;
+      document.getElementById('hudSpeed').innerHTML = `${Math.round(raceState.speed)} <span class="text-xs text-slate-400">km/h</span>`;
+      document.getElementById('hudGear').innerText = raceState.gear === 0 ? 'N' : raceState.gear;
+
+      document.getElementById('rpmDigit').innerText = Math.round(raceState.rpm);
+      const rpmPercent = Math.min(100, (raceState.rpm / MAX_RPM) * 100);
+      document.getElementById('rpmBar').style.width = rpmPercent + '%';
+    }
+
+    function showShiftFeedback(text, styleClasses) {
+      const el = document.getElementById('shiftFeedback');
+      el.innerText = text;
+      el.className = `glass-panel px-6 py-2 rounded-xl font-orbitron font-black text-sm transition-all pointer-events-none z-20 shadow-2xl border ${styleClasses} opacity-100 scale-105`;
+
+      setTimeout(() => { el.classList.add('opacity-0'); }, 900);
+    }
+
+    function switchTab(tab) {
+      document.getElementById('viewGarage').classList.add('hidden');
+      document.getElementById('viewRace').classList.add('hidden');
+      document.getElementById('viewLobby').classList.add('hidden');
+      document.getElementById('viewTeam').classList.add('hidden');
+
+      document.getElementById('tabGarageBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron";
+      document.getElementById('tabRaceBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron";
+      document.getElementById('tabLobbyBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron";
+      document.getElementById('tabTeamBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200 font-orbitron";
+
+      if (tab === 'garage') {
+        document.getElementById('viewGarage').classList.remove('hidden');
+        document.getElementById('tabGarageBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 font-orbitron shadow-md";
+        setupGarageCamera();
+      } else if (tab === 'race') {
+        document.getElementById('viewRace').classList.remove('hidden');
+        document.getElementById('viewRace').classList.add('flex');
+        document.getElementById('tabRaceBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 font-orbitron shadow-md";
+        resetRace();
+      } else if (tab === 'lobby') {
+        document.getElementById('viewLobby').classList.remove('hidden');
+        document.getElementById('tabLobbyBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 font-orbitron shadow-md";
+      } else if (tab === 'team') {
+        document.getElementById('viewTeam').classList.remove('hidden');
+        document.getElementById('tabTeamBtn').className = "px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-cyan-500 text-slate-950 font-orbitron shadow-md";
+      }
+    }
+
+    function openAuthModal() { document.getElementById('authModal').classList.remove('hidden'); }
+    function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
+    function saveAccountProfile() {
+      const name = document.getElementById('inputNickname').value.trim();
+      if (name) {
+        userAccount.nickname = name;
+        document.getElementById('navDriverName').innerText = name;
+        closeAuthModal();
+      }
+    }
+  </script>
 </body>
 </html>
